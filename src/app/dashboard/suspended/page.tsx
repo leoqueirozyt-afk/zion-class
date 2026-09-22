@@ -18,7 +18,7 @@ export default async function SuspendedPage() {
         <h1 className="text-xl font-semibold">Conta suspensa</h1>
         <p className="text-sm text-stone-500">
           Conta de <span className="font-medium text-stone-700">{session.name}</span> ·
-          status <span className="font-medium text-red-700">SUSPENDED</span>
+          status <span className="font-medium text-red-700">{session.status}</span>
         </p>
         <p className="text-stone-600 text-sm">
           Fale com o professor da turma para reativar seu acesso.

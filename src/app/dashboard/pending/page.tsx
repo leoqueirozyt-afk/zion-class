@@ -18,11 +18,11 @@ export default async function PendingPage() {
         <h1 className="text-xl font-semibold">Aguardando aprovação</h1>
         <p className="text-sm text-stone-500">
           Conta de <span className="font-medium text-stone-700">{session.name}</span> ·
-          status <span className="font-medium text-amber-700">PENDING</span>
+          status <span className="font-medium text-amber-700">{session.status}</span>
         </p>
         <p className="text-stone-600 text-sm">
-          Sua conta foi criada. Assim que o professor aprovar, você terá acesso aos
-          estudos. Atualize a página para verificar.
+          Sua conta foi criada. Assim que o professor aprovar, atualize a página
+          para entrar automaticamente.
         </p>
         <form action={logoutAction}>
           <Button variant="outline" type="submit">
