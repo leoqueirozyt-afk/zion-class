@@ -1,0 +1,3 @@
+SESSION_SECRET=change-me-to-a-long-random-string
+SEED_TEACHER_EMAIL=professor@igreja.com
+SEED_TEACHER_PASSWORD=Troque@123
