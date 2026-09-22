@@ -7,19 +7,93 @@ import { getDb } from "@/db";
 import { getCurrentSession } from "@/lib/actions/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { validatePdf } from "@/lib/materials/pdf";
+import {
+  getMaterialsBucket,
+  materialKeyFromUrl,
+  wipeLessonPrefix,
+  type MaterialsBucket,
+} from "@/lib/materials/r2";
 
 export type Result = { ok: boolean; error?: string; lessonId?: string };
 
 export async function saveLesson(
   db: any,
   rawInput: unknown,
-  existingId?: string
+  existingId?: string,
+  bucket?: MaterialsBucket | null,
+  files?: File[] | null
 ): Promise<Result> {
   const parsed = lessonSchema.safeParse(rawInput);
   if (!parsed.success)
     return { ok: false, error: parsed.error.issues[0].message };
   const data = parsed.data;
   const lessonId = existingId ?? crypto.randomUUID();
+
+  type FinalMaterial = {
+    id: string;
+    title: string;
+    url: string;
+    type: "PDF" | "LINK" | "IMAGE" | "DOCUMENT";
+  };
+  const finals: FinalMaterial[] = [];
+  const uploads: { key: string; file: File }[] = [];
+
+  for (const m of data.materials) {
+    if (m._file !== undefined) {
+      const file = files?.[m._file];
+      if (!file) return { ok: false, error: "Informe o link ou o PDF" };
+      const check = validatePdf(file);
+      if (!check.ok) return check;
+      if (!bucket)
+        return {
+          ok: false,
+          error: "Não foi possível enviar o PDF. Tente novamente.",
+        };
+      const materialId = crypto.randomUUID();
+      const key = `materials/${lessonId}/${materialId}.pdf`;
+      uploads.push({ key, file });
+      finals.push({
+        id: materialId,
+        title: m.title,
+        url: `/files/${lessonId}/${materialId}.pdf`,
+        type: "PDF",
+      });
+    } else {
+      finals.push({
+        id: crypto.randomUUID(),
+        title: m.title,
+        url: m.url,
+        type: m.type,
+      });
+    }
+  }
+
+  if (existingId && bucket) {
+    const keep = new Set(
+      finals
+        .filter((f) => f.url.startsWith("/files/"))
+        .map((f) => materialKeyFromUrl(f.url))
+    );
+    await wipeLessonPrefix(bucket, lessonId, keep);
+  }
+
+  for (const u of uploads) {
+    try {
+      await bucket!.put(u.key, await u.file.arrayBuffer(), {
+        httpMetadata: {
+          contentType: "application/pdf",
+          contentDisposition: 'attachment; filename="material.pdf"',
+        },
+      });
+    } catch (e) {
+      console.error("R2 put failed", e);
+      return {
+        ok: false,
+        error: "Não foi possível enviar o PDF. Tente novamente.",
+      };
+    }
+  }
 
   if (existingId) {
     await db
@@ -48,10 +122,10 @@ export async function saveLesson(
     });
   }
 
-  if (data.materials.length) {
+  if (finals.length) {
     await db.insert(materials).values(
-      data.materials.map((m) => ({
-        id: crypto.randomUUID(),
+      finals.map((m) => ({
+        id: m.id,
         lessonId,
         title: m.title,
         url: m.url,
@@ -81,8 +155,10 @@ export async function saveLesson(
 
 export async function deleteLesson(
   db: any,
-  lessonId: string
+  lessonId: string,
+  bucket?: MaterialsBucket | null
 ): Promise<Result> {
+  if (bucket) await wipeLessonPrefix(bucket, lessonId);
   await db.delete(lessons).where(eq(lessons.id, lessonId));
   return { ok: true };
 }
@@ -113,17 +189,27 @@ async function requireTeacher() {
 function parseFormInput(formData: FormData) {
   const materialsRaw = JSON.parse(String(formData.get("materialsJson") || "[]"));
   const questionsRaw = JSON.parse(String(formData.get("questionsJson") || "[]"));
+  const files: File[] = [];
+  for (const m of materialsRaw as { _file?: number }[]) {
+    if (m && typeof m._file === "number") {
+      const f = formData.get(`file_${m._file}`);
+      if (f instanceof File) files[m._file] = f;
+    }
+  }
   return {
-    title: formData.get("title"),
-    description: String(formData.get("description") || ""),
-    date: formData.get("date"),
-    videoUrl: String(formData.get("videoUrl") || ""),
-    thumbnailUrl: String(formData.get("thumbnailUrl") || ""),
-    isPublished:
-      formData.get("isPublished") === "true" ||
-      formData.get("isPublished") === "on",
-    materials: materialsRaw,
-    questions: questionsRaw,
+    input: {
+      title: formData.get("title"),
+      description: String(formData.get("description") || ""),
+      date: formData.get("date"),
+      videoUrl: String(formData.get("videoUrl") || ""),
+      thumbnailUrl: String(formData.get("thumbnailUrl") || ""),
+      isPublished:
+        formData.get("isPublished") === "true" ||
+        formData.get("isPublished") === "on",
+      materials: materialsRaw,
+      questions: questionsRaw,
+    },
+    files,
   };
 }
 
@@ -133,10 +219,19 @@ export async function saveLessonAction(
 ): Promise<Result> {
   if (!(await requireTeacher()))
     return { ok: false, error: "Acesso restrito" };
+  const { input, files } = parseFormInput(formData);
+  let bucket: MaterialsBucket | null = null;
+  try {
+    bucket = getMaterialsBucket();
+  } catch {
+    bucket = null;
+  }
   const result = await saveLesson(
     getDb(),
-    parseFormInput(formData),
-    lessonId ?? undefined
+    input,
+    lessonId ?? undefined,
+    bucket,
+    files
   );
   if (result.ok) {
     revalidatePath("/admin/lessons");
@@ -147,7 +242,13 @@ export async function saveLessonAction(
 
 export async function deleteLessonAction(formData: FormData) {
   if (!(await requireTeacher())) redirect("/dashboard");
-  await deleteLesson(getDb(), String(formData.get("lessonId")));
+  let bucket: MaterialsBucket | null = null;
+  try {
+    bucket = getMaterialsBucket();
+  } catch {
+    bucket = null;
+  }
+  await deleteLesson(getDb(), String(formData.get("lessonId")), bucket);
   revalidatePath("/admin/lessons");
   revalidatePath("/dashboard", "layout");
 }

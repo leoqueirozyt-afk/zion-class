@@ -11,11 +11,24 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Informe a senha"),
 });
 
-export const materialSchema = z.object({
-  title: z.string().trim().min(1, "Título obrigatório"),
-  url: z.string().trim().url("URL inválida"),
-  type: z.enum(["PDF", "LINK", "IMAGE", "DOCUMENT"]),
-});
+export const materialSchema = z
+  .object({
+    title: z.string().trim().min(1, "Título obrigatório"),
+    url: z.string().trim(),
+    type: z.enum(["PDF", "LINK", "IMAGE", "DOCUMENT"]),
+    _file: z.number().int().optional(),
+  })
+  .refine((m) => m._file !== undefined || m.url !== "", {
+    message: "Informe o link ou o PDF",
+    path: ["url"],
+  })
+  .refine(
+    (m) =>
+      m._file !== undefined ||
+      m.url.startsWith("/files/") ||
+      z.string().url().safeParse(m.url).success,
+    { message: "URL inválida", path: ["url"] }
+  );
 
 export const questionInputSchema = z
   .object({

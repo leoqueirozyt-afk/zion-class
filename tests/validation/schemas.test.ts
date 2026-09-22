@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   registerSchema,
   lessonSchema,
+  materialSchema,
   saveAnswersSchema,
 } from "@/lib/validation/schemas";
 
@@ -26,6 +27,58 @@ describe("schemas", () => {
     ).toBe(true);
     expect(
       lessonSchema.safeParse({ title: "Aula", date: "22/09/2026", description: "" }).success
+    ).toBe(false);
+  });
+  it("material accepts external url", () => {
+    expect(
+      materialSchema.safeParse({
+        title: "Slides",
+        url: "https://exemplo.com/a.pdf",
+        type: "PDF",
+      }).success
+    ).toBe(true);
+  });
+  it("material accepts /files path (kept upload)", () => {
+    expect(
+      materialSchema.safeParse({
+        title: "Apostila",
+        url: "/files/abc/def.pdf",
+        type: "PDF",
+      }).success
+    ).toBe(true);
+  });
+  it("material accepts empty url only with _file", () => {
+    expect(
+      materialSchema.safeParse({
+        title: "Apostila",
+        url: "",
+        type: "PDF",
+        _file: 0,
+      }).success
+    ).toBe(true);
+    expect(
+      materialSchema.safeParse({
+        title: "Apostila",
+        url: "",
+        type: "PDF",
+      }).success
+    ).toBe(false);
+  });
+  it("material rejects invalid url without _file", () => {
+    expect(
+      materialSchema.safeParse({
+        title: "Apostila",
+        url: "not-a-url",
+        type: "PDF",
+        _file: 1,
+      }).success
+    ).toBe(true);
+    expect(
+      materialSchema.safeParse({
+        title: "Apostila",
+        url: "not-a-url",
+        type: "LINK",
+      }).success
     ).toBe(false);
   });
   it("saveAnswers rejects empty text and null optionIndex", () => {

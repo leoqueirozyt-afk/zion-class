@@ -44,6 +44,7 @@ export default async function EditLessonPage({
       title: m.title,
       url: m.url,
       type: m.type,
+      mode: m.url.startsWith("/files/") ? ("file" as const) : ("link" as const),
     })),
     questions: qs.map((q) => ({
       questionText: q.questionText,

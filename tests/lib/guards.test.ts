@@ -20,6 +20,11 @@ describe("evaluateAccess", () => {
     expect(evaluateAccess(null, "/dashboard")).toEqual({ type: "redirect", to: "/login" });
     expect(evaluateAccess(null, "/admin")).toEqual({ type: "redirect", to: "/login" });
   });
+  it("allows public material files without session", () => {
+    expect(
+      evaluateAccess(null, "/files/abc/def.pdf")
+    ).toEqual({ type: "allow" });
+  });
   it("does not gate on JWT status (RSC enforces via DB)", () => {
     expect(evaluateAccess(s({ status: "PENDING" }), "/dashboard")).toEqual({ type: "allow" });
     expect(evaluateAccess(s({ status: "PENDING" }), "/dashboard/pending")).toEqual({ type: "allow" });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Plus, Trash2, ArrowUp, ArrowDown, Loader2 } from "lucide-react";
@@ -10,28 +10,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { saveLessonAction } from "@/lib/actions/lessons";
+import {
+  buildLessonFormData,
+  type LessonFormValues,
+  type MaterialRow,
+  type QuestionRow,
+} from "@/lib/admin/lesson-form-data";
 
-export type MaterialRow = {
-  title: string;
-  url: string;
-  type: "PDF" | "LINK" | "IMAGE" | "DOCUMENT";
-};
-export type QuestionRow = {
-  questionText: string;
-  questionType: "TEXT" | "MULTIPLE_CHOICE";
-  options: string[];
-  correctOptionIndex: number | null;
-};
-export type LessonFormValues = {
-  title: string;
-  description: string;
-  date: string;
-  videoUrl: string;
-  thumbnailUrl: string;
-  isPublished: boolean;
-  materials: MaterialRow[];
-  questions: QuestionRow[];
-};
+export type { LessonFormValues, MaterialRow, QuestionRow };
+
+function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export function LessonForm({
   lessonId,
@@ -43,21 +35,26 @@ export function LessonForm({
   const [v, setV] = useState(initial);
   const [pending, start] = useTransition();
   const router = useRouter();
+  const fileInputs = useRef<Record<number, HTMLInputElement | null>>({});
   const set = <K extends keyof LessonFormValues>(
     k: K,
     value: LessonFormValues[K]
   ) => setV((s) => ({ ...s, [k]: value }));
 
+  const patchMaterial = (i: number, patch: Partial<MaterialRow>) => {
+    const rows = [...v.materials];
+    rows[i] = { ...rows[i], ...patch };
+    set("materials", rows);
+  };
+
   const submit = (publish?: boolean) => {
-    const fd = new FormData();
-    fd.set("title", v.title);
-    fd.set("description", v.description);
-    fd.set("date", v.date);
-    fd.set("videoUrl", v.videoUrl);
-    fd.set("thumbnailUrl", v.thumbnailUrl);
-    fd.set("isPublished", String(publish ?? v.isPublished));
-    fd.set("materialsJson", JSON.stringify(v.materials));
-    fd.set("questionsJson", JSON.stringify(v.questions));
+    for (const m of v.materials) {
+      if (!m.file && !m.url) {
+        toast.error("Informe o link ou o PDF");
+        return;
+      }
+    }
+    const fd = buildLessonFormData(v, publish);
     start(async () => {
       const res = await saveLessonAction(lessonId, fd);
       if (res.ok) {
@@ -148,7 +145,7 @@ export function LessonForm({
             onClick={() =>
               set("materials", [
                 ...v.materials,
-                { title: "", url: "", type: "LINK" },
+                { title: "", url: "", type: "LINK", mode: "link" },
               ])
             }
           >
@@ -158,58 +155,115 @@ export function LessonForm({
         {v.materials.length === 0 && (
           <p className="text-sm text-stone-500">Nenhum material.</p>
         )}
-        {v.materials.map((m, i) => (
-          <div
-            key={i}
-            className="grid sm:grid-cols-[1fr_2fr_auto_auto] gap-2 items-end"
-          >
-            <Input
-              placeholder="Título"
-              value={m.title}
-              onChange={(e) => {
-                const rows = [...v.materials];
-                rows[i] = { ...m, title: e.target.value };
-                set("materials", rows);
-              }}
-            />
-            <Input
-              placeholder="https://…"
-              value={m.url}
-              onChange={(e) => {
-                const rows = [...v.materials];
-                rows[i] = { ...m, url: e.target.value };
-                set("materials", rows);
-              }}
-            />
-            <select
-              className="h-9 rounded-md border border-stone-300 px-2 text-sm bg-white"
-              value={m.type}
-              onChange={(e) => {
-                const rows = [...v.materials];
-                rows[i] = {
-                  ...m,
-                  type: e.target.value as MaterialRow["type"],
-                };
-                set("materials", rows);
-              }}
+        {v.materials.map((m, i) => {
+          const fileMode = m.mode === "file" || !!m.file;
+          return (
+            <div
+              key={i}
+              className="grid sm:grid-cols-[1fr_2fr_auto_auto_auto] gap-2 items-end"
             >
-              {(["PDF", "LINK", "IMAGE", "DOCUMENT"] as const).map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </select>
-            <Button
-              size="icon"
-              variant="ghost"
-              type="button"
-              onClick={() =>
-                set("materials", v.materials.filter((_, j) => j !== i))
-              }
-              aria-label="Remover material"
-            >
-              <Trash2 className="h-4 w-4 text-red-600" />
-            </Button>
-          </div>
-        ))}
+              <Input
+                placeholder="Título"
+                value={m.title}
+                onChange={(e) => patchMaterial(i, { title: e.target.value })}
+              />
+              {fileMode ? (
+                <div className="flex items-center gap-2 min-h-9 rounded-md border border-stone-300 px-2">
+                  {m.file ? (
+                    <>
+                      <span className="text-sm text-stone-700 truncate flex-1">
+                        {m.file.name} ({formatBytes(m.file.size)})
+                      </span>
+                      <button
+                        type="button"
+                        className="text-stone-500 hover:text-red-600 text-sm"
+                        aria-label="Remover arquivo"
+                        onClick={() =>
+                          patchMaterial(i, { file: null, mode: "link", url: "" })
+                        }
+                      >
+                        ✕
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="text-sm text-emerald-700 hover:underline"
+                        onClick={() => fileInputs.current[i]?.click()}
+                      >
+                        {m.url.startsWith("/files/")
+                          ? "Arquivo atual — trocar PDF…"
+                          : "Escolher PDF…"}
+                      </button>
+                      <input
+                        ref={(el) => {
+                          fileInputs.current[i] = el;
+                        }}
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0] ?? null;
+                          if (f) patchMaterial(i, { file: f, type: "PDF" });
+                        }}
+                      />
+                    </>
+                  )}
+                </div>
+              ) : (
+                <Input
+                  placeholder="https://…"
+                  value={m.url}
+                  onChange={(e) => patchMaterial(i, { url: e.target.value })}
+                />
+              )}
+              <div className="flex rounded-md border border-stone-300 overflow-hidden h-9 self-end">
+                <button
+                  type="button"
+                  className={`px-2 text-xs ${!fileMode ? "bg-emerald-700 text-white" : "bg-white text-stone-600"}`}
+                  onClick={() =>
+                    patchMaterial(i, { mode: "link", file: null })
+                  }
+                >
+                  Link
+                </button>
+                <button
+                  type="button"
+                  className={`px-2 text-xs ${fileMode ? "bg-emerald-700 text-white" : "bg-white text-stone-600"}`}
+                  onClick={() => patchMaterial(i, { mode: "file", url: m.url.startsWith("/files/") ? m.url : "" })}
+                >
+                  Arquivo
+                </button>
+              </div>
+              <select
+                className="h-9 rounded-md border border-stone-300 px-2 text-sm bg-white disabled:bg-stone-100"
+                value={m.file ? "PDF" : m.type}
+                disabled={!!m.file}
+                onChange={(e) => {
+                  patchMaterial(i, {
+                    type: e.target.value as MaterialRow["type"],
+                  });
+                }}
+              >
+                {(["PDF", "LINK", "IMAGE", "DOCUMENT"] as const).map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
+              </select>
+              <Button
+                size="icon"
+                variant="ghost"
+                type="button"
+                onClick={() =>
+                  set("materials", v.materials.filter((_, j) => j !== i))
+                }
+                aria-label="Remover material"
+              >
+                <Trash2 className="h-4 w-4 text-red-600" />
+              </Button>
+            </div>
+          );
+        })}
       </div>
 
       <div className="rounded-xl border border-stone-200 bg-white p-6 space-y-4">

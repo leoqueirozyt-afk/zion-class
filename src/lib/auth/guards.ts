@@ -9,7 +9,8 @@ export function evaluateAccess(
   const isAuthPage = pathname === "/login" || pathname === "/register";
 
   if (!session) {
-    if (isAuthPage || pathname === "/") return { type: "allow" };
+    if (isAuthPage || pathname === "/" || pathname.startsWith("/files/"))
+      return { type: "allow" };
     return { type: "redirect", to: "/login" };
   }
 

@@ -12,5 +12,8 @@
       "database_id": "225d7178-291d-4b98-b078-90168549cd29",
       "migrations_dir": "src/db/migrations"
     }
+  ],
+  "kv_namespaces": [
+    { "binding": "MATERIALS", "id": "ea3eea6f4c4244ef90b01d736517d9b9" }
   ]
 }

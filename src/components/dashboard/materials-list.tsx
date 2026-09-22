@@ -10,12 +10,14 @@ export function MaterialsList({ materials }: { materials: Material[] }) {
     <ul className="space-y-2">
       {materials.map((m) => {
         const Icon = icons[m.type] ?? Link2;
+        const isPdf = m.type === "PDF";
         return (
           <li key={m.id}>
             <a
               href={m.url}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...(isPdf
+                ? {}
+                : { target: "_blank", rel: "noopener noreferrer" })}
               className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3 hover:border-emerald-700 transition"
             >
               <Icon className="h-4 w-4 text-emerald-500 shrink-0" />
@@ -25,7 +27,7 @@ export function MaterialsList({ materials }: { materials: Material[] }) {
               <span className="text-[10px] uppercase text-zinc-500">
                 {m.type}
               </span>
-              <ExternalLink className="h-3.5 w-3.5 text-zinc-600" />
+              {!isPdf && <ExternalLink className="h-3.5 w-3.5 text-zinc-600" />}
             </a>
           </li>
         );
