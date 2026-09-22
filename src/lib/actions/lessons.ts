@@ -1,3 +1,5 @@
+"use server";
+
 import { eq } from "drizzle-orm";
 import { lessons, materials, questions } from "@/db/schema";
 import { lessonSchema } from "@/lib/validation/schemas";

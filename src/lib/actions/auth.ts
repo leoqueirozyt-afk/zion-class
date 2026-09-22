@@ -1,3 +1,5 @@
+"use server";
+
 import { eq } from "drizzle-orm";
 import { users } from "@/db/schema";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";

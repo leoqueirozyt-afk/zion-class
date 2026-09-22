@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { AuthForm } from "@/components/auth/auth-form";
 import { loginAction } from "@/lib/actions/auth";
@@ -13,7 +14,9 @@ export default function LoginPage() {
           <h1 className="text-2xl font-semibold text-stone-900">Zion Class</h1>
           <p className="text-sm text-stone-500">Área de estudos · Grupo bíblico semanal</p>
         </div>
-        <AuthForm action={loginAction} mode="login" />
+        <Suspense>
+          <AuthForm action={loginAction} mode="login" />
+        </Suspense>
         <p className="text-center text-sm text-stone-500">
           Novo por aqui?{" "}
           <Link href="/register" className="text-emerald-700 font-medium">

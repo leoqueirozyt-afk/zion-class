@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseSessionToken } from "@/lib/auth/session";
 import { evaluateAccess } from "@/lib/auth/guards";
-import { SESSION_COOKIE } from "@/lib/auth/cookies";
+import { SESSION_COOKIE } from "@/lib/auth/session-cookie";
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get(SESSION_COOKIE)?.value;

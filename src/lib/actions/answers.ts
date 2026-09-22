@@ -1,3 +1,5 @@
+"use server";
+
 import { and, eq, inArray } from "drizzle-orm";
 import { answers, questions, lessons } from "@/db/schema";
 import { saveAnswersSchema } from "@/lib/validation/schemas";

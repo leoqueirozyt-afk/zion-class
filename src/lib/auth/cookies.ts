@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
+import { SESSION_COOKIE } from "./session-cookie";
 
-export const SESSION_COOKIE = "zion_session";
+export { SESSION_COOKIE };
 
 export async function setSessionCookie(token: string) {
   (await cookies()).set(SESSION_COOKIE, token, {

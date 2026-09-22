@@ -1,3 +1,5 @@
+"use server";
+
 import { and, eq, sql } from "drizzle-orm";
 import { users } from "@/db/schema";
 import { studentStatusSchema } from "@/lib/validation/schemas";

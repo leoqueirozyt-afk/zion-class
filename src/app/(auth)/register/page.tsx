@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { AuthForm } from "@/components/auth/auth-form";
 import { registerAction } from "@/lib/actions/auth";
@@ -15,7 +16,9 @@ export default function RegisterPage() {
             Cadastro de aluno · aguarda aprovação do professor
           </p>
         </div>
-        <AuthForm action={registerAction} mode="register" />
+        <Suspense>
+          <AuthForm action={registerAction} mode="register" />
+        </Suspense>
         <p className="text-center text-sm text-stone-500">
           Já tenho conta?{" "}
           <Link href="/login" className="text-emerald-700 font-medium">
