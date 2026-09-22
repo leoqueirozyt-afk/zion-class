@@ -1,19 +1,21 @@
 import type { MaterialsBucket } from "./r2";
 
-const KEY_RE = /^materials\/[0-9a-f-]+\/[0-9a-f-]+\.pdf$/;
+const SEGMENT_RE = /^[A-Za-z0-9_-]+$/;
+const FILE_RE = /^[A-Za-z0-9_-]+\.pdf$/;
 
 export async function serveMaterialFile(
   bucket: MaterialsBucket,
   path: string[]
 ): Promise<Response> {
-  const key = path.join("/");
-  if (path.length !== 3 || !KEY_RE.test(key))
+  if (path.length !== 2) return new Response("Não encontrada", { status: 404 });
+  const [lessonId, filename] = path;
+  if (!SEGMENT_RE.test(lessonId) || !FILE_RE.test(filename))
     return new Response("Não encontrada", { status: 404 });
 
+  const key = `materials/${lessonId}/${filename}`;
   const obj = await bucket.get(key);
   if (!obj) return new Response("Não encontrada", { status: 404 });
 
-  const filename = path[path.length - 1];
   return new Response(await obj.arrayBuffer(), {
     headers: {
       "Content-Type": "application/pdf",

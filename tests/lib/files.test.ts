@@ -2,9 +2,10 @@ import { describe, it, expect } from "vitest";
 import { serveMaterialFile } from "@/lib/materials/files";
 import type { MaterialsBucket } from "@/lib/materials/r2";
 
-const VALID_ID = "225d7178-291d-4b98-b078-90168549cd29";
-const VALID_MAT = "0f0f0f0f-1111-2222-3333-444455556666";
-const VALID_PATH = ["materials", VALID_ID, `${VALID_MAT}.pdf`];
+const LESSON_ID = "seed-lesson-0001";
+const MAT_ID = "0f0f0f0f-1111-2222-3333-444455556666";
+const VALID_PATH = [LESSON_ID, `${MAT_ID}.pdf`];
+const VALID_KEY = `materials/${LESSON_ID}/${MAT_ID}.pdf`;
 
 function bucketWith(key: string | null): MaterialsBucket {
   return {
@@ -24,12 +25,12 @@ function bucketWith(key: string | null): MaterialsBucket {
 }
 
 describe("serveMaterialFile", () => {
-  it("returns 200 with attachment headers", async () => {
-    const key = `materials/${VALID_ID}/${VALID_MAT}.pdf`;
-    const res = await serveMaterialFile(bucketWith(key), VALID_PATH);
+  it("maps real /files/{lessonId}/{file}.pdf path to materials key", async () => {
+    const res = await serveMaterialFile(bucketWith(VALID_KEY), VALID_PATH);
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toBe("application/pdf");
     expect(res.headers.get("Content-Disposition")).toContain("attachment");
+    expect(res.headers.get("Content-Disposition")).toContain(`${MAT_ID}.pdf`);
     expect(res.headers.get("Cache-Control")).toContain("immutable");
     const buf = new Uint8Array(await res.arrayBuffer());
     expect([...buf]).toEqual([1, 2, 3]);
@@ -41,18 +42,18 @@ describe("serveMaterialFile", () => {
   });
 
   it("returns 404 on invalid path shapes", async () => {
-    const b = bucketWith("x");
-    expect((await serveMaterialFile(b, ["materials", "..", "a.pdf"])).status).toBe(404);
-    expect((await serveMaterialFile(b, ["materials", "x"])).status).toBe(404);
+    const b = bucketWith(VALID_KEY);
+    expect((await serveMaterialFile(b, ["..", `${MAT_ID}.pdf`])).status).toBe(404);
+    expect((await serveMaterialFile(b, [LESSON_ID, "..pdf"])).status).toBe(404);
+    expect((await serveMaterialFile(b, [LESSON_ID, "a.png"])).status).toBe(404);
     expect(
-      (await serveMaterialFile(b, ["materials", VALID_ID, "a.png"])).status
+      (await serveMaterialFile(b, [LESSON_ID, "a b.pdf"])).status
     ).toBe(404);
     expect(
-      (await serveMaterialFile(b, ["other", VALID_ID, `${VALID_MAT}.pdf`])).status
-    ).toBe(404);
-    expect(
-      (await serveMaterialFile(b, ["materials", "not-a-uuid", `${VALID_MAT}.pdf`])).status
+      (await serveMaterialFile(b, ["materials", LESSON_ID, `${MAT_ID}.pdf`]))
+        .status
     ).toBe(404);
     expect((await serveMaterialFile(b, [])).status).toBe(404);
+    expect((await serveMaterialFile(b, [LESSON_ID])).status).toBe(404);
   });
 });
