@@ -9,7 +9,7 @@
     {
       "binding": "DB",
       "database_name": "zion_class",
-      "database_id": "local-zion-class",
+      "database_id": "225d7178-291d-4b98-b078-90168549cd29",
       "migrations_dir": "src/db/migrations"
     }
   ]
