@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Logo } from "@/components/ui/logo";
 import { getCurrentSession, logoutAction } from "@/lib/actions/auth";
 
 export default async function DashboardLayout({
@@ -15,9 +16,7 @@ export default async function DashboardLayout({
       <header className="sticky top-0 z-40 bg-zinc-950/90 backdrop-blur border-b border-zinc-800">
         <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <span className="w-7 h-7 rounded-lg bg-emerald-700 grid place-items-center text-sm text-white">
-              Z
-            </span>
+            <Logo className="w-7 h-7 rounded-lg" />
             Zion Class
           </Link>
           <nav className="flex items-center gap-4 text-sm text-zinc-400">

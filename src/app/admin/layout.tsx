@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LayoutDashboard, BookOpen, Users, LogOut } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
 import { getCurrentSession, logoutAction } from "@/lib/actions/auth";
 
 const nav = [
@@ -28,9 +29,7 @@ export default async function AdminLayout({
             href="/admin"
             className="flex items-center gap-2 font-semibold mb-6 px-2"
           >
-            <span className="w-8 h-8 rounded-lg bg-emerald-700 text-white grid place-items-center text-sm">
-              Z
-            </span>
+            <Logo className="w-8 h-8 rounded-lg" />
             Zion Admin
           </Link>
           {nav.map((item) => (
@@ -50,7 +49,8 @@ export default async function AdminLayout({
         </aside>
         <div className="flex-1 flex flex-col min-w-0">
           <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-stone-200 bg-white px-4 h-14">
-            <Link href="/admin" className="font-semibold">
+            <Link href="/admin" className="flex items-center gap-2 font-semibold">
+              <Logo className="w-7 h-7 rounded-lg" />
               Zion Admin
             </Link>
             <nav className="flex gap-3 text-sm">
