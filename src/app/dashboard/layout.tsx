@@ -9,8 +9,6 @@ export default async function DashboardLayout({
 }) {
   const session = await getCurrentSession();
   if (!session) redirect("/login");
-  if (session.status === "PENDING") redirect("/dashboard/pending");
-  if (session.status === "SUSPENDED") redirect("/dashboard/suspended");
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">

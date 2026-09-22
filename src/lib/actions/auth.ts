@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { users } from "@/db/schema";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { createSessionToken, parseSessionToken } from "@/lib/auth/session";
+import { loadFreshSession } from "@/lib/auth/session-refresh";
 import {
   setSessionCookie,
   clearSessionCookie,
@@ -101,5 +102,17 @@ export async function logoutAction() {
 export async function getCurrentSession() {
   const token = await getSessionCookie();
   if (!token) return null;
-  return parseSessionToken(token);
+  const fresh = await loadFreshSession(getDb(), token);
+  if (!fresh) return null;
+  const parsed = await parseSessionToken(token);
+  if (
+    parsed &&
+    (parsed.status !== fresh.status ||
+      parsed.role !== fresh.role ||
+      parsed.name !== fresh.name)
+  ) {
+    const next = await createSessionToken(fresh);
+    await setSessionCookie(next);
+  }
+  return fresh;
 }

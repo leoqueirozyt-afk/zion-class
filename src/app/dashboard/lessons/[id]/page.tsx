@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { getDb } from "@/db";
 import { getCurrentSession } from "@/lib/actions/auth";
+import { statusRedirectPath } from "@/lib/auth/session-refresh";
 import { getLessonForStudent } from "@/lib/queries/lesson";
 import { formatDate } from "@/lib/utils/format";
 import { VideoEmbed } from "@/components/dashboard/video-embed";
@@ -16,8 +17,8 @@ export default async function LessonPage({
   const { id } = await params;
   const session = await getCurrentSession();
   if (!session) redirect("/login");
-  if (session.status === "PENDING") redirect("/dashboard/pending");
-  if (session.status === "SUSPENDED") redirect("/dashboard/suspended");
+  const away = statusRedirectPath(session);
+  if (away) redirect(away);
 
   const data = await getLessonForStudent(getDb(), id, session.sub);
   if (!data) notFound();

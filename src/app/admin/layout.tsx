@@ -17,6 +17,7 @@ export default async function AdminLayout({
   const session = await getCurrentSession();
   if (!session) redirect("/login");
   if (session.role !== "TEACHER") redirect("/dashboard");
+  if (session.status === "SUSPENDED") redirect("/dashboard/suspended");
   if (session.status !== "ACTIVE") redirect("/dashboard/pending");
 
   return (
