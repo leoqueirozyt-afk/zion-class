@@ -84,6 +84,7 @@ export function LessonForm({
             value={v.title}
             onChange={(e) => set("title", e.target.value)}
             placeholder="Estudo #05 - Carta aos Romanos"
+            className="h-12"
           />
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -94,6 +95,7 @@ export function LessonForm({
               type="date"
               value={v.date}
               onChange={(e) => set("date", e.target.value)}
+              className="h-12"
             />
           </div>
           <label className="flex items-center gap-2 text-sm cursor-pointer pb-2">
@@ -121,6 +123,7 @@ export function LessonForm({
               value={v.thumbnailUrl}
               onChange={(e) => set("thumbnailUrl", e.target.value)}
               placeholder="https://…"
+              className="h-12"
             />
           </div>
           <div className="space-y-1.5">
@@ -130,6 +133,7 @@ export function LessonForm({
               value={v.videoUrl}
               onChange={(e) => set("videoUrl", e.target.value)}
               placeholder="https://youtube.com/…"
+              className="h-12"
             />
           </div>
         </div>
@@ -422,12 +426,12 @@ export function LessonForm({
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Button
           type="button"
           onClick={() => submit()}
           disabled={pending}
-          className="bg-emerald-700 hover:bg-emerald-800"
+          className="h-12 w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800"
         >
           {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Salvar
@@ -437,6 +441,7 @@ export function LessonForm({
           onClick={() => submit(true)}
           disabled={pending}
           variant="outline"
+          className="h-12 w-full sm:w-auto"
         >
           Salvar e publicar
         </Button>
