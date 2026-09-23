@@ -19,12 +19,18 @@ export default async function DashboardLayout({
             <Logo className="w-7 h-7 rounded-lg" />
             Zion Class
           </Link>
-          <nav className="flex items-center gap-4 text-sm text-zinc-400">
-            <Link href="/dashboard" className="hover:text-zinc-100">
+          <nav className="flex items-center gap-2 sm:gap-4 text-sm text-zinc-400">
+            <Link
+              href="/dashboard"
+              className="inline-flex h-11 items-center px-2 hover:text-zinc-100"
+            >
               Início
             </Link>
             <form action={logoutAction}>
-              <button className="hover:text-zinc-100" type="submit">
+              <button
+                className="inline-flex h-11 items-center px-2 hover:text-zinc-100"
+                type="submit"
+              >
                 Sair
               </button>
             </form>
