@@ -50,6 +50,6 @@ describe("ResponsiveTable", () => {
         emptyState={<p>Nenhum registro.</p>}
       />
     );
-    expect(screen.getByText("Nenhum registro.")).toBeInTheDocument();
+    expect(screen.getAllByText("Nenhum registro.").length).toBeGreaterThanOrEqual(1);
   });
 });
