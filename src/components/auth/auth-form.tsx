@@ -36,7 +36,7 @@ export function AuthForm({
   return (
     <form
       action={formAction}
-      className="space-y-4 bg-white border border-stone-200 rounded-xl p-6 shadow-sm"
+      className="space-y-4 bg-white border border-stone-200 rounded-xl p-4 sm:p-6 shadow-sm"
       onSubmit={() => {
         submitted.current = true;
       }}
@@ -69,7 +69,10 @@ export function AuthForm({
           autoComplete={mode === "login" ? "current-password" : "new-password"}
         />
       </div>
-      <Button className="w-full bg-emerald-700 hover:bg-emerald-800" disabled={pending}>
+      <Button
+        className="w-full h-12 bg-emerald-700 hover:bg-emerald-800"
+        disabled={pending}
+      >
         {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {mode === "login" ? "Entrar" : "Criar conta"}
       </Button>
