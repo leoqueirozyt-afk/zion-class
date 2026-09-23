@@ -87,3 +87,33 @@ export const studentStatusSchema = z.object({
   userId: z.string().min(1),
   action: z.enum(["APPROVE", "SUSPEND", "REACTIVATE", "PROMOTE"]),
 });
+
+export const attendanceKeywordSchema = z.object({
+  lessonId: z.string().min(1),
+  keyword: z.string().trim().min(1, "Informe a palavra-chave"),
+});
+
+export const openAttendanceSchema = z.object({
+  lessonId: z.string().min(1),
+  keyword: z.string().trim().min(1, "Informe a palavra-chave"),
+  durationMinutes: z.coerce.number().int().min(1).max(240),
+});
+
+export const closeAttendanceSchema = z.object({
+  lessonId: z.string().min(1),
+});
+
+export const justifyAttendanceSchema = z.object({
+  lessonId: z.string().min(1),
+  studentId: z.string().min(1),
+});
+
+export const suspendFromLessonSchema = z.object({
+  studentId: z.string().min(1),
+  reason: z.string().trim().max(200).default("Faltas à chamada"),
+});
+
+export const confirmAttendanceSchema = z.object({
+  lessonId: z.string().min(1),
+  keyword: z.string().trim().min(1, "Digite a palavra-chave"),
+});
