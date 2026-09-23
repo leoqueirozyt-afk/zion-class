@@ -96,7 +96,7 @@ export function QuestionForm({
                 setValues((v) => ({ ...v, [q.id]: e.target.value }))
               }
               placeholder="Escreva sua resposta…"
-              className="bg-zinc-950 border-zinc-800 text-zinc-100 min-h-[96px]"
+              className="bg-zinc-950 border-zinc-800 text-zinc-100 min-h-[120px]"
             />
           ) : (
             <div className="space-y-2">
@@ -124,7 +124,7 @@ export function QuestionForm({
       <Button
         onClick={submit}
         disabled={pending}
-        className="bg-emerald-700 hover:bg-emerald-800"
+        className="h-12 w-full md:w-auto bg-emerald-700 hover:bg-emerald-800"
       >
         {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {answered ? "Atualizar respostas" : "Enviar respostas"}
