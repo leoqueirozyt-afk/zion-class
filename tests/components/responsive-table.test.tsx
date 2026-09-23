@@ -43,7 +43,7 @@ describe("ResponsiveTable", () => {
     render(
       <ResponsiveTable
         columns={columns}
-        rows={[]}
+        rows={[] as Row[]}
         rowKey={(r) => r.id}
         renderMobile={() => null}
         renderDesktopRow={() => null}
