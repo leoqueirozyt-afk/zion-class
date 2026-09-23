@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { desc, eq, sql } from "drizzle-orm";
-import { Plus, Pencil, MessageSquare, Trash2 } from "lucide-react";
+import { Plus, Pencil, MessageSquare, ClipboardList, Trash2 } from "lucide-react";
 import { getDb } from "@/db";
 import { lessons, questions, answers } from "@/db/schema";
 import { formatDate } from "@/lib/utils/format";
@@ -136,6 +136,16 @@ export default async function AdminLessonsPage({
                       >
                         <MessageSquare className="h-4 w-4" />
                         <span className="ml-1 hidden sm:inline">Respostas</span>
+                      </Link>
+                    </Button>
+                    <Button asChild size="sm" variant="ghost">
+                      <Link
+                        href={`/admin/lessons/${l.id}/attendance`}
+                        aria-label="Chamada"
+                        title="Abrir chamada da aula"
+                      >
+                        <ClipboardList className="h-4 w-4" />
+                        <span className="ml-1 hidden sm:inline">Chamada</span>
                       </Link>
                     </Button>
                     <form action={togglePublishAction}>

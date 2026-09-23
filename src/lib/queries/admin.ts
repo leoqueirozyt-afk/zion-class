@@ -1,5 +1,5 @@
 import { and, asc, desc, eq, sql } from "drizzle-orm";
-import { answers, lessons, questions, users } from "@/db/schema";
+import { answers, attendances, lessons, questions, users } from "@/db/schema";
 
 export type ResponseQuestion = {
   id: string;
@@ -185,5 +185,81 @@ export async function getAdminMetrics(db: any) {
     totalAnswers: Number(totalAnswers[0].c),
     pendingStudents: Number(pendingStudents[0].c),
     recent,
+  };
+}
+
+export type AttendanceRow = {
+  id: string;
+  name: string;
+  email: string;
+  status: "PRESENT" | "ABSENT" | "JUSTIFIED" | null;
+  confirmedAt: number | null;
+  userStatus: "PENDING" | "ACTIVE" | "SUSPENDED";
+};
+
+export type AttendanceView = {
+  lesson: {
+    id: string;
+    title: string;
+    date: string;
+    attendanceKeyword: string | null;
+    isAttendanceOpen: boolean;
+    attendanceExpiresAt: number | null;
+    expired: boolean;
+  };
+  rows: AttendanceRow[];
+  totalActive: number;
+  presentCount: number;
+};
+
+export async function getAttendanceView(
+  db: any,
+  lessonId: string
+): Promise<AttendanceView | null> {
+  const lessonRows = await db
+    .select()
+    .from(lessons)
+    .where(eq(lessons.id, lessonId))
+    .limit(1);
+  if (!lessonRows.length) return null;
+  const lesson = lessonRows[0];
+  const students = await db
+    .select()
+    .from(users)
+    .where(eq(users.role, "STUDENT"))
+    .orderBy(asc(users.name));
+  const att = await db
+    .select()
+    .from(attendances)
+    .where(eq(attendances.lessonId, lessonId));
+  const by = new Map<string, any>(
+    att.map((a: any) => [a.studentId, a] as const)
+  );
+  const rows: AttendanceRow[] = students.map((s: any) => {
+    const a = by.get(s.id);
+    return {
+      id: s.id,
+      name: s.name,
+      email: s.email,
+      status: a?.status ?? null,
+      confirmedAt: a?.confirmedAt ?? null,
+      userStatus: s.status,
+    };
+  });
+  return {
+    lesson: {
+      id: lesson.id,
+      title: lesson.title,
+      date: lesson.date,
+      attendanceKeyword: lesson.attendanceKeyword,
+      isAttendanceOpen: lesson.isAttendanceOpen,
+      attendanceExpiresAt: lesson.attendanceExpiresAt,
+      expired:
+        lesson.attendanceExpiresAt != null &&
+        Date.now() > lesson.attendanceExpiresAt,
+    },
+    rows,
+    totalActive: students.filter((s: any) => s.status === "ACTIVE").length,
+    presentCount: rows.filter((r) => r.status === "PRESENT").length,
   };
 }
