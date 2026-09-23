@@ -15,6 +15,7 @@ import {
   justifyAbsenceAction,
   suspendStudentAction,
 } from "@/lib/actions/attendance";
+import { ResponsiveTable } from "@/components/shell/responsive-table";
 
 const statusBadge: Record<
   string,
@@ -70,7 +71,7 @@ export function AttendancePanel({ view }: { view: AttendanceView }) {
           </Badge>
         </div>
 
-        <div className="flex flex-wrap items-end gap-2">
+        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-end">
           <div className="space-y-1.5 flex-1 min-w-[200px]">
             <label
               htmlFor="kw"
@@ -83,11 +84,12 @@ export function AttendancePanel({ view }: { view: AttendanceView }) {
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="Ex: ALIANÇA"
+              className="h-12 w-full"
               disabled={pending}
             />
           </div>
           {!open && (
-            <div className="space-y-1.5 w-28">
+            <div className="space-y-1.5 w-full sm:w-28">
               <label htmlFor="dur" className="text-sm font-medium text-stone-700">
                 Minutos
               </label>
@@ -98,13 +100,15 @@ export function AttendancePanel({ view }: { view: AttendanceView }) {
                 max={240}
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
+                className="h-12"
                 disabled={pending}
               />
             </div>
           )}
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Button
               variant="outline"
+              className="h-12 w-full sm:w-auto"
               disabled={pending || !keyword.trim()}
               onClick={() =>
                 run(
@@ -122,7 +126,7 @@ export function AttendancePanel({ view }: { view: AttendanceView }) {
             {open ? (
               <Button
                 disabled={pending}
-                className="bg-red-700 hover:bg-red-800"
+                className="h-12 w-full sm:w-auto bg-red-700 hover:bg-red-800"
                 onClick={() =>
                   run(
                     () =>
@@ -136,7 +140,7 @@ export function AttendancePanel({ view }: { view: AttendanceView }) {
             ) : (
               <Button
                 disabled={pending || !keyword.trim()}
-                className="bg-emerald-700 hover:bg-emerald-800"
+                className="h-12 w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800"
                 onClick={() =>
                   run(
                     () =>
@@ -163,96 +167,160 @@ export function AttendancePanel({ view }: { view: AttendanceView }) {
         </p>
       </div>
 
-      <div className="rounded-lg border border-stone-200 bg-white overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-stone-50 text-stone-500 text-left">
-            <tr>
-              <th className="p-3 font-medium">Aluno</th>
-              <th className="p-3 font-medium">Status</th>
-              <th className="p-3 font-medium">Confirmado</th>
-              <th className="p-3 font-medium text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {view.rows.map((r) => (
-              <tr key={r.id} className="border-t border-stone-100">
-                <td className="p-3">
-                  <div className="font-medium">{r.name}</div>
-                  <div className="text-xs text-stone-500">{r.email}</div>
-                </td>
-                <td className="p-3">
-                  {r.userStatus === "SUSPENDED" ? (
-                    <Badge className="bg-red-100 text-red-700">Suspenso</Badge>
-                  ) : r.status ? (
-                    <Badge className={statusBadge[r.status].cls}>
-                      {statusBadge[r.status].label}
-                    </Badge>
-                  ) : (
-                    <span className="text-stone-400">—</span>
-                  )}
-                </td>
-                <td className="p-3 whitespace-nowrap">
-                  {r.confirmedAt ? formatDateTime(r.confirmedAt) : "—"}
-                </td>
-                <td className="p-3 text-right whitespace-nowrap">
-                  {r.status === "ABSENT" && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={pending}
-                      onClick={() =>
-                        run(
-                          () =>
-                            justifyAbsenceAction({
-                              lessonId: view.lesson.id,
-                              studentId: r.id,
-                            }),
-                          "Falta justificada"
-                        )
-                      }
-                    >
-                      Justificar
-                    </Button>
-                  )}
-                  {r.userStatus !== "SUSPENDED" && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={pending}
-                      className="text-red-600"
-                      onClick={() => {
-                        if (
-                          !window.confirm(
-                            `Suspender ${r.name}? Motivo: faltas à chamada.`
-                          )
-                        )
-                          return;
-                        run(
-                          () =>
-                            suspendStudentAction({
-                              studentId: r.id,
-                              reason: "Faltas à chamada",
-                            }),
-                          "Aluno suspenso"
-                        );
-                      }}
-                    >
-                      Suspender
-                    </Button>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {!view.rows.length && (
-              <tr>
-                <td colSpan={4} className="p-8 text-center text-stone-500">
-                  Nenhum aluno cadastrado.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ResponsiveTable
+        columns={[
+          { key: "aluno", header: "Aluno" },
+          { key: "status", header: "Status" },
+          { key: "confirmado", header: "Confirmado" },
+          { key: "acoes", header: "Ações", className: "text-right" },
+        ]}
+        rows={view.rows}
+        rowKey={(r) => r.id}
+        emptyState={
+          <p className="p-8 text-center text-stone-500">
+            Nenhum aluno cadastrado.
+          </p>
+        }
+        renderMobile={(r) => (
+          <div className="space-y-2">
+            <div>
+              <div className="font-medium">{r.name}</div>
+              <div className="text-xs text-stone-500">{r.email}</div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              {r.userStatus === "SUSPENDED" ? (
+                <Badge className="bg-red-100 text-red-700">Suspenso</Badge>
+              ) : r.status ? (
+                <Badge className={statusBadge[r.status].cls}>
+                  {statusBadge[r.status].label}
+                </Badge>
+              ) : (
+                <span className="text-stone-400">—</span>
+              )}
+              <span className="text-stone-500">
+                {r.confirmedAt ? formatDateTime(r.confirmedAt) : "—"}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {r.status === "ABSENT" && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-11"
+                  disabled={pending}
+                  onClick={() =>
+                    run(
+                      () =>
+                        justifyAbsenceAction({
+                          lessonId: view.lesson.id,
+                          studentId: r.id,
+                        }),
+                      "Falta justificada"
+                    )
+                  }
+                >
+                  Justificar
+                </Button>
+              )}
+              {r.userStatus !== "SUSPENDED" && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-11 text-red-600"
+                  disabled={pending}
+                  onClick={() => {
+                    if (
+                      !window.confirm(
+                        `Suspender ${r.name}? Motivo: faltas à chamada.`
+                      )
+                    )
+                      return;
+                    run(
+                      () =>
+                        suspendStudentAction({
+                          studentId: r.id,
+                          reason: "Faltas à chamada",
+                        }),
+                      "Aluno suspenso"
+                    );
+                  }}
+                >
+                  Suspender
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+        renderDesktopRow={(r) => (
+          <>
+            <td className="p-3">
+              <div className="font-medium">{r.name}</div>
+              <div className="text-xs text-stone-500">{r.email}</div>
+            </td>
+            <td className="p-3">
+              {r.userStatus === "SUSPENDED" ? (
+                <Badge className="bg-red-100 text-red-700">Suspenso</Badge>
+              ) : r.status ? (
+                <Badge className={statusBadge[r.status].cls}>
+                  {statusBadge[r.status].label}
+                </Badge>
+              ) : (
+                <span className="text-stone-400">—</span>
+              )}
+            </td>
+            <td className="p-3 whitespace-nowrap">
+              {r.confirmedAt ? formatDateTime(r.confirmedAt) : "—"}
+            </td>
+            <td className="p-3 text-right whitespace-nowrap">
+              {r.status === "ABSENT" && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={pending}
+                  onClick={() =>
+                    run(
+                      () =>
+                        justifyAbsenceAction({
+                          lessonId: view.lesson.id,
+                          studentId: r.id,
+                        }),
+                      "Falta justificada"
+                    )
+                  }
+                >
+                  Justificar
+                </Button>
+              )}
+              {r.userStatus !== "SUSPENDED" && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={pending}
+                  className="text-red-600"
+                  onClick={() => {
+                    if (
+                      !window.confirm(
+                        `Suspender ${r.name}? Motivo: faltas à chamada.`
+                      )
+                    )
+                      return;
+                    run(
+                      () =>
+                        suspendStudentAction({
+                          studentId: r.id,
+                          reason: "Faltas à chamada",
+                        }),
+                      "Aluno suspenso"
+                    );
+                  }}
+                >
+                  Suspender
+                </Button>
+              )}
+            </td>
+          </>
+        )}
+      />
     </div>
   );
 }
