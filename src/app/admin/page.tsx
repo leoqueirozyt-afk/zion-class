@@ -55,10 +55,11 @@ export default async function AdminHome() {
           {m.recent.length === 0 && (
             <p className="text-sm text-stone-500">Nenhuma resposta ainda.</p>
           )}
-          {m.recent.map((r: { studentName: string; lessonTitle: string; submittedAt: number }, i: number) => (
-            <div
+          {m.recent.map((r: { studentName: string; lessonTitle: string; lessonId: string; submittedAt: number }, i: number) => (
+            <Link
               key={i}
-              className="flex flex-wrap justify-between gap-2 text-sm border-b border-stone-100 pb-2 last:border-0"
+              href={`/admin/lessons/${r.lessonId}/responses`}
+              className="flex flex-wrap justify-between gap-2 text-sm border-b border-stone-100 pb-2 last:border-0 hover:bg-stone-50 rounded px-1 -mx-1"
             >
               <span>
                 <strong>{r.studentName}</strong> · {r.lessonTitle}
@@ -66,7 +67,7 @@ export default async function AdminHome() {
               <span className="text-stone-500">
                 {formatDateTime(r.submittedAt)}
               </span>
-            </div>
+            </Link>
           ))}
         </CardContent>
       </Card>

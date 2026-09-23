@@ -131,9 +131,11 @@ export default async function AdminLessonsPage({
                     <Button asChild size="sm" variant="ghost">
                       <Link
                         href={`/admin/lessons/${l.id}/responses`}
-                        aria-label="Respostas"
+                        aria-label="Ver respostas"
+                        title="Ver respostas dos alunos"
                       >
                         <MessageSquare className="h-4 w-4" />
+                        <span className="ml-1 hidden sm:inline">Respostas</span>
                       </Link>
                     </Button>
                     <form action={togglePublishAction}>

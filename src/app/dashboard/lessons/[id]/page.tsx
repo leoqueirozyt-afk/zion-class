@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/utils/format";
 import { VideoEmbed } from "@/components/dashboard/video-embed";
 import { MaterialsList } from "@/components/dashboard/materials-list";
 import { QuestionForm } from "@/components/dashboard/question-form";
+import { LessonThumbnail } from "@/components/dashboard/lesson-thumbnail";
 
 export default async function LessonPage({
   params,
@@ -26,19 +27,7 @@ export default async function LessonPage({
 
   return (
     <article className="space-y-10 py-6 max-w-3xl mx-auto">
-      {lesson.thumbnailUrl && (
-        <div className="rounded-2xl overflow-hidden aspect-[3/1] bg-zinc-900">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lesson.thumbnailUrl}
-            alt=""
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-        </div>
-      )}
+      {lesson.thumbnailUrl && <LessonThumbnail src={lesson.thumbnailUrl} />}
       <header className="space-y-2">
         <p className="text-xs text-emerald-500">{formatDate(lesson.date)}</p>
         <h1 className="text-2xl sm:text-3xl font-bold text-zinc-50">
