@@ -88,7 +88,7 @@ export function Showcase({ lessons }: { lessons: ShowcaseLesson[] }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar estudo…"
-            className="max-w-sm bg-zinc-900 border-zinc-800 text-zinc-100"
+            className="h-12 max-w-sm w-full bg-zinc-900 border-zinc-800 text-zinc-100"
             aria-label="Buscar estudo"
           />
         </div>
