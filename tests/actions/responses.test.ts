@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { createTestDb } from "../utils/test-db";
-import { getResponsesMatrix } from "@/lib/queries/admin";
+import {
+  getResponsesMatrix,
+  getLessonsWithResponseCounts,
+  getAdminMetrics,
+} from "@/lib/queries/admin";
 import { users, lessons, questions, answers } from "@/db/schema";
 
 async function seed(db: any) {
@@ -58,5 +62,44 @@ describe("getResponsesMatrix", () => {
     expect(joao.cells["q2"]).toBeUndefined();
     expect(m.answeredCount).toBe(1);
     expect(m.totalStudents).toBe(2);
+  });
+});
+
+describe("getLessonsWithResponseCounts", () => {
+  it("lists only lessons with answers, distinct students, active total", async () => {
+    const db = createTestDb();
+    await seed(db);
+    await db.insert(lessons).values({
+      id: "l-empty", title: "Sem respostas", description: "", date: "2026-01-01",
+      isPublished: true, createdAt: Date.now(),
+    });
+    const rows = await getLessonsWithResponseCounts(db);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: "l1",
+      title: "Aula",
+      answeredCount: 2,
+      totalActiveStudents: 2,
+    });
+    expect(rows[0].lastSubmittedAt).toBeTypeOf("number");
+  });
+});
+
+describe("getAdminMetrics recent", () => {
+  it("returns one row per student·lesson (not per question)", async () => {
+    const db = createTestDb();
+    await seed(db);
+    const m = await getAdminMetrics(db);
+    expect(m.recent).toHaveLength(2);
+    const keys = m.recent.map(
+      (r: { studentName: string; lessonId: string }) =>
+        `${r.studentName}:${r.lessonId}`
+    );
+    expect(new Set(keys).size).toBe(keys.length);
+    const maria = m.recent.find(
+      (r: { studentName: string }) => r.studentName === "Maria"
+    )!;
+    expect(maria.lessonId).toBe("l1");
+    expect(maria.submittedAt).toBeTypeOf("number");
   });
 });

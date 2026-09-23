@@ -1,4 +1,4 @@
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { answers, lessons, questions, users } from "@/db/schema";
 
 export type ResponseQuestion = {
@@ -98,6 +98,48 @@ export async function getResponsesMatrix(
     totalStudents: students.length,
     answeredCount,
   };
+}
+
+export type LessonResponseCount = {
+  id: string;
+  title: string;
+  date: string;
+  answeredCount: number;
+  totalActiveStudents: number;
+  lastSubmittedAt: number | null;
+};
+
+export async function getLessonsWithResponseCounts(
+  db: any
+): Promise<LessonResponseCount[]> {
+  const stats = await db
+    .select({
+      id: lessons.id,
+      title: lessons.title,
+      date: lessons.date,
+      answeredCount: sql<number>`count(distinct ${answers.studentId})`,
+      lastSubmittedAt: sql<number | null>`max(${answers.submittedAt})`,
+    })
+    .from(lessons)
+    .innerJoin(questions, eq(questions.lessonId, lessons.id))
+    .innerJoin(answers, eq(answers.questionId, questions.id))
+    .groupBy(lessons.id, lessons.title, lessons.date)
+    .orderBy(desc(lessons.date));
+
+  const total = await db
+    .select({ c: sql<number>`count(*)` })
+    .from(users)
+    .where(and(eq(users.role, "STUDENT"), eq(users.status, "ACTIVE")));
+  const totalActiveStudents = Number(total[0].c);
+
+  return stats.map((r: any) => ({
+    id: r.id,
+    title: r.title,
+    date: r.date,
+    answeredCount: Number(r.answeredCount),
+    totalActiveStudents,
+    lastSubmittedAt: r.lastSubmittedAt == null ? null : Number(r.lastSubmittedAt),
+  }));
 }
 
 export async function getAdminMetrics(db: any) {
