@@ -27,12 +27,12 @@ export function AttendanceConfirm({
       <p className="text-sm text-emerald-200/80">
         Digite a palavra-chave informada pelo professor:
       </p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
         <Input
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="Ex: ALIANÇA"
-          className="max-w-xs bg-zinc-900 border-zinc-700 text-zinc-50"
+          className="h-12 w-full md:max-w-xs bg-zinc-900 border-zinc-700 text-zinc-50"
           aria-label="Palavra-chave da presença"
           disabled={pending}
         />
@@ -52,7 +52,7 @@ export function AttendanceConfirm({
               }
             })
           }
-          className="bg-emerald-700 hover:bg-emerald-800"
+          className="h-12 w-full md:w-auto bg-emerald-700 hover:bg-emerald-800"
         >
           {pending ? "Confirmando…" : "Confirmar Presença"}
         </Button>
