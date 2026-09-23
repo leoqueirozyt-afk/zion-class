@@ -12,7 +12,7 @@ export default async function PendingPage() {
   if (!away) redirect(session.role === "TEACHER" ? "/admin" : "/dashboard");
 
   return (
-    <main className="min-h-screen grid place-items-center p-6 text-center bg-stone-50">
+    <main className="min-h-screen grid place-items-center px-4 py-6 text-center bg-stone-50">
       <div className="max-w-md space-y-4">
         <Clock className="mx-auto h-12 w-12 text-amber-600" />
         <h1 className="text-xl font-semibold">Aguardando aprovação</h1>
@@ -25,7 +25,11 @@ export default async function PendingPage() {
           para entrar automaticamente.
         </p>
         <form action={logoutAction}>
-          <Button variant="outline" type="submit">
+          <Button
+            variant="outline"
+            type="submit"
+            className="h-12 w-full sm:w-auto"
+          >
             Sair
           </Button>
         </form>
