@@ -77,7 +77,7 @@ export async function closeAttendance(db: any, raw: unknown): Promise<Result> {
   const actives = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.status, "ACTIVE"));
+    .where(and(eq(users.status, "ACTIVE"), eq(users.role, "STUDENT")));
   const existing = await db
     .select()
     .from(attendances)

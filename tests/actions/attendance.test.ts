@@ -92,16 +92,17 @@ describe("confirmAttendance", () => {
 });
 
 describe("closeAttendance", () => {
-  it("closes and marks ABSENT for ACTIVE without row", async () => {
+  it("closes and marks ABSENT for ACTIVE students without row", async () => {
     await openAttendance(db, { lessonId: "l1", keyword: "GRAÇA", durationMinutes: 30 });
     await confirmAttendance(db, "s1", { lessonId: "l1", keyword: "GRAÇA" });
     const r = await closeAttendance(db, { lessonId: "l1" });
     expect(r.ok).toBe(true);
-    const rows = await db.select().from(attendances);
+    const rows = await db.select().from(attendances).where(eq(attendances.lessonId, "l1"));
     const byStudent = Object.fromEntries(rows.map((a: any) => [a.studentId, a.status]));
     expect(byStudent.s1).toBe("PRESENT");
     expect(byStudent.s2).toBe("ABSENT");
     expect(byStudent.s3).toBeUndefined();
+    expect(byStudent.t1).toBeUndefined();
     const lessonsRow = await db.select().from(lessons).where(eq(lessons.id, "l1"));
     expect(lessonsRow[0].isAttendanceOpen).toBe(false);
   });
