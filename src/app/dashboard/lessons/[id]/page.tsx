@@ -9,6 +9,10 @@ import { VideoEmbed } from "@/components/dashboard/video-embed";
 import { MaterialsList } from "@/components/dashboard/materials-list";
 import { QuestionForm } from "@/components/dashboard/question-form";
 import { LessonThumbnail } from "@/components/dashboard/lesson-thumbnail";
+import {
+  AttendanceBadge,
+  AttendanceConfirm,
+} from "@/components/dashboard/attendance-confirm";
 
 export default async function LessonPage({
   params,
@@ -23,7 +27,7 @@ export default async function LessonPage({
 
   const data = await getLessonForStudent(getDb(), id, session.sub);
   if (!data) notFound();
-  const { lesson, materials, questions } = data;
+  const { lesson, materials, questions, myAttendance } = data;
 
   return (
     <article className="space-y-10 py-6 max-w-3xl mx-auto">
@@ -34,6 +38,16 @@ export default async function LessonPage({
           {lesson.title}
         </h1>
       </header>
+
+      {myAttendance?.status === "PRESENT" &&
+      myAttendance.confirmedAt != null ? (
+        <AttendanceBadge confirmedAt={myAttendance.confirmedAt} />
+      ) : (
+        <AttendanceConfirm
+          lessonId={lesson.id}
+          open={lesson.isAttendanceOpen}
+        />
+      )}
 
       <section className="prose prose-invert prose-sm max-w-none [&_a]:text-emerald-400">
         <ReactMarkdown>{lesson.description}</ReactMarkdown>

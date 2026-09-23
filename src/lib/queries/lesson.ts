@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
-import { lessons, materials, questions, answers } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
+import { lessons, materials, questions, answers, attendances } from "@/db/schema";
 
 export async function getLessonForStudent(
   db: any,
@@ -22,9 +22,20 @@ export async function getLessonForStudent(
     .from(answers)
     .where(eq(answers.studentId, studentId));
   const byQ = new Map<string, any>(myAnswers.map((a: any) => [a.questionId, a]));
+  const att = await db
+    .select()
+    .from(attendances)
+    .where(
+      and(
+        eq(attendances.lessonId, lessonId),
+        eq(attendances.studentId, studentId)
+      )
+    )
+    .limit(1);
   return {
     lesson: l[0],
     materials: mats,
+    myAttendance: att[0] ?? null,
     questions: qs.map((q: any) => {
       const a: any = byQ.get(q.id);
       return {
