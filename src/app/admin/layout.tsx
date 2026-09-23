@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LayoutDashboard, BookOpen, Users, MessageSquare, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  BookOpen,
+  Users,
+  MessageSquare,
+  LogOut,
+} from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { getCurrentSession, logoutAction } from "@/lib/actions/auth";
+import { MobileNav, type NavItem } from "@/components/shell/mobile-nav";
 
-const nav = [
+const nav: NavItem[] = [
   { href: "/admin", label: "Visão geral", icon: LayoutDashboard },
   { href: "/admin/lessons", label: "Aulas", icon: BookOpen },
   { href: "/admin/responses", label: "Respostas", icon: MessageSquare },
@@ -39,7 +46,7 @@ export default async function AdminLayout({
               href={item.href}
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-stone-700 hover:bg-stone-100"
             >
-              <item.icon className="h-4 w-4" /> {item.label}
+              {item.icon && <item.icon className="h-4 w-4" />} {item.label}
             </Link>
           ))}
           <form action={logoutAction} className="mt-auto">
@@ -50,17 +57,18 @@ export default async function AdminLayout({
         </aside>
         <div className="flex-1 flex flex-col min-w-0">
           <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-stone-200 bg-white px-4 h-14">
-            <Link href="/admin" className="flex items-center gap-2 font-semibold">
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 font-semibold"
+            >
               <Logo className="w-7 h-7 rounded-lg" />
               Zion Admin
             </Link>
-            <nav className="flex gap-3 text-sm">
-              {nav.map((i) => (
-                <Link key={i.href} href={i.href}>
-                  {i.label}
-                </Link>
-              ))}
-            </nav>
+            <MobileNav
+              links={nav}
+              user={{ name: session.name }}
+              title="Menu admin"
+            />
           </header>
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl w-full mx-auto">
             {children}
