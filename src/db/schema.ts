@@ -12,6 +12,7 @@ export const users = sqliteTable("users", {
   status: text("status", { enum: ["PENDING", "ACTIVE", "SUSPENDED"] })
     .notNull()
     .default("PENDING"),
+  suspensionReason: text("suspension_reason"),
   createdAt: createdAtCol(),
 });
 
@@ -23,6 +24,9 @@ export const lessons = sqliteTable("lessons", {
   videoUrl: text("video_url"),
   thumbnailUrl: text("thumbnail_url"),
   isPublished: integer("is_published", { mode: "boolean" }).notNull().default(false),
+  attendanceKeyword: text("attendance_keyword"),
+  isAttendanceOpen: integer("is_attendance_open", { mode: "boolean" }).notNull().default(false),
+  attendanceExpiresAt: integer("attendance_expires_at"),
   createdAt: createdAtCol(),
 });
 
@@ -66,8 +70,25 @@ export const answers = sqliteTable(
   (t) => [uniqueIndex("answers_question_student_uq").on(t.questionId, t.studentId)]
 );
 
+export const attendances = sqliteTable(
+  "attendances",
+  {
+    id: id(),
+    lessonId: text("lesson_id")
+      .notNull()
+      .references(() => lessons.id, { onDelete: "cascade" }),
+    studentId: text("student_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: text("status", { enum: ["PRESENT", "ABSENT", "JUSTIFIED"] }).notNull(),
+    confirmedAt: integer("confirmed_at"),
+  },
+  (t) => [uniqueIndex("attendances_lesson_student_uq").on(t.lessonId, t.studentId)]
+);
+
 export type User = typeof users.$inferSelect;
 export type Lesson = typeof lessons.$inferSelect;
 export type Material = typeof materials.$inferSelect;
 export type Question = typeof questions.$inferSelect;
 export type Answer = typeof answers.$inferSelect;
+export type Attendance = typeof attendances.$inferSelect;
