@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LayoutDashboard, BookOpen, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, BookOpen, Users, MessageSquare, LogOut } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { getCurrentSession, logoutAction } from "@/lib/actions/auth";
 
 const nav = [
   { href: "/admin", label: "Visão geral", icon: LayoutDashboard },
   { href: "/admin/lessons", label: "Aulas", icon: BookOpen },
+  { href: "/admin/responses", label: "Respostas", icon: MessageSquare },
   { href: "/admin/students", label: "Alunos", icon: Users },
 ];
 
