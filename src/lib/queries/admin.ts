@@ -164,7 +164,8 @@ export async function getAdminMetrics(db: any) {
 
   const recent = await db
     .select({
-      submittedAt: answers.submittedAt,
+      submittedAt: sql<number>`max(${answers.submittedAt})`,
+      studentId: answers.studentId,
       studentName: users.name,
       lessonId: lessons.id,
       lessonTitle: lessons.title,
@@ -173,7 +174,8 @@ export async function getAdminMetrics(db: any) {
     .innerJoin(users, eq(answers.studentId, users.id))
     .innerJoin(questions, eq(answers.questionId, questions.id))
     .innerJoin(lessons, eq(questions.lessonId, lessons.id))
-    .orderBy(desc(answers.submittedAt))
+    .groupBy(answers.studentId, users.name, lessons.id, lessons.title)
+    .orderBy(desc(sql<number>`max(${answers.submittedAt})`))
     .limit(5);
 
   return {
